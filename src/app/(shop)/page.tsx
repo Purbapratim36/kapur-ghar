@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     "Shop authentic Assamese Mekhela Sador, Muga Silk, Pat Silk, Eri Silk & handloom ethnic wear. Premium traditional fashion handcrafted in Assam.",
 };
 
-// Revalidate the storefront every 30 seconds so newly-added products appear quickly
-export const revalidate = 30;
+// Render fresh on every request — newly added products show up instantly
+export const dynamic = "force-dynamic";
 
 // Server component — fetches real DB data
 export default async function HomePage() {

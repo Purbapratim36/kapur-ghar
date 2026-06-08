@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "Browse our complete collection of Assamese Mekhela Sador, Muga Silk, Pat Silk, Eri Silk, and handloom ethnic wear.",
 };
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
   const products = await getProducts({ limit: 60 });

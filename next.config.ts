@@ -2,19 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Allow images from any HTTPS host. This way you can paste image URLs from
+    // anywhere (Cloudinary, Unsplash, Pexels, Amazon, your own host, etc.)
+    // without having to whitelist every domain.
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
+      { protocol: "https", hostname: "**" },
     ],
   },
   experimental: {
