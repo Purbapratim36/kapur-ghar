@@ -94,7 +94,10 @@ model Category {
   name        String     @unique
   slug        String     @unique
   description String?
-  image       String?
+  image       String?    // legacy single image (kept for compatibility)
+  coverImage  String?    // primary cover used on home category card / category page hero
+  bannerImage String?    // wide banner shown atop the category landing page
+  tagline     String?    // short tagline shown over the cover
   parentId    String?
   sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
