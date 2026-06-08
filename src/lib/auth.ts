@@ -1,7 +1,6 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
@@ -49,13 +48,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
     })
   );
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(db),
+  // NOTE: no Prisma adapter. With JWT session strategy + the production pattern
+  // of handling OAuth users manually in callbacks, the adapter just gets in the
+  // way — it tries to create users via its own schema assumptions and fails when
+  // an email already exists. We do user upserts ourselves in `signIn` below.
   session: { strategy: "jwt" },
   trustHost: true,
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
@@ -65,18 +66,48 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   providers,
   callbacks: {
-    async jwt({ token, user, trigger }) {
-      // First sign-in: user is populated, copy id and role onto the token
+    // Upsert the Google user record into our DB. If a user with the same email
+    // already exists (e.g. you registered with password first, now signing in
+    // with Google), we link to that existing row instead of failing.
+    async signIn({ user, account }) {
+      if (account?.provider !== "google") return true;
+      if (!user.email) return false;
+
+      try {
+        const email = user.email.toLowerCase();
+        await db.user.upsert({
+          where: { email },
+          update: {
+            name: user.name ?? undefined,
+            image: user.image ?? undefined,
+          },
+          create: {
+            email,
+            name: user.name ?? null,
+            image: user.image ?? null,
+            role: "USER",
+            emailVerified: new Date(),
+          },
+        });
+        return true;
+      } catch (err) {
+        console.error("[auth] Google signIn upsert failed:", err);
+        return false;
+      }
+    },
+
+    async jwt({ token, user }) {
+      // First sign-in: copy over id/role from `user`
       if (user) {
         const u = user as typeof user & { id?: string; role?: string };
         if (u.id) token.id = u.id;
         if (u.role) token.role = u.role;
       }
 
-      // On session update or if missing, refresh role from DB by email
-      if ((trigger === "update" || !token.role) && token.email) {
+      // If we still don't have id/role (Google first sign-in), look up by email
+      if (token.email && (!token.id || !token.role)) {
         const dbUser = await db.user.findUnique({
-          where: { email: token.email as string },
+          where: { email: (token.email as string).toLowerCase() },
           select: { id: true, role: true },
         });
         if (dbUser) {
@@ -87,6 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
         session.user.id = (token.id as string) || (token.sub as string);
