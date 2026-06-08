@@ -7,14 +7,21 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const filterConfig = [
   {
-    key: "fabric",
-    label: "Fabric",
-    options: ["Muga Silk", "Pat Silk", "Eri Silk", "Cotton", "Tussar Silk", "Blended"],
+    key: "color",
+    label: "Color",
+    options: [
+      "Red", "Gold", "White", "Black", "Green", "Blue", "Pink", "Yellow", "Orange", "Maroon",
+    ],
   },
   {
     key: "occasion",
-    label: "Occasion",
+    label: "Occasions",
     options: ["Wedding", "Festival", "Daily Wear", "Party", "Casual", "Formal"],
+  },
+  {
+    key: "fabric",
+    label: "Fabric",
+    options: ["Muga Silk", "Pat Silk", "Eri Silk", "Cotton", "Tussar Silk", "Blended"],
   },
   {
     key: "silkType",
@@ -22,42 +29,39 @@ const filterConfig = [
     options: ["Muga", "Pat", "Eri", "Tussar", "Mulberry"],
   },
   {
-    key: "color",
-    label: "Color",
-    options: ["Red", "Gold", "White", "Black", "Green", "Blue", "Pink", "Yellow", "Orange", "Maroon"],
-  },
-  {
     key: "price",
     label: "Price",
-    options: ["Under ₹2,000", "₹2,000 - ₹5,000", "₹5,000 - ₹10,000", "₹10,000 - ₹20,000", "Above ₹20,000"],
+    options: [
+      "Under ₹2,000",
+      "₹2,000 - ₹5,000",
+      "₹5,000 - ₹10,000",
+      "₹10,000 - ₹20,000",
+      "Above ₹20,000",
+    ],
   },
-];
-
-const sortOptions = [
-  { value: "newest", label: "Newest First" },
-  { value: "price-asc", label: "Price: Low to High" },
-  { value: "price-desc", label: "Price: High to Low" },
-  { value: "rating", label: "Top Rated" },
-  { value: "popular", label: "Most Popular" },
 ];
 
 interface ProductFilterProps {
   totalProducts: number;
 }
 
-export default function ProductFilter({ totalProducts }: ProductFilterProps) {
+export default function ProductFilter({ totalProducts: _totalProducts }: ProductFilterProps) {
+  void _totalProducts;
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const [openSections, setOpenSections] = useState<string[]>(["fabric", "price"]);
+  const [openSections, setOpenSections] = useState<string[]>([
+    "color",
+    "occasion",
+    "fabric",
+    "price",
+  ]);
 
   const activeFilters: Record<string, string> = {};
   filterConfig.forEach((filter) => {
     const value = searchParams.get(filter.key);
     if (value) activeFilters[filter.key] = value;
   });
-
-  const currentSort = searchParams.get("sort") || "newest";
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -74,101 +78,91 @@ export default function ProductFilter({ totalProducts }: ProductFilterProps) {
     router.push(window.location.pathname);
   };
 
-  const toggleSection = (key: string) => {
+  const toggleSection = (key: string) =>
     setOpenSections((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
-  };
 
-  const filterContent = (
-    <div className="space-y-4">
-      {filterConfig.map((filter) => (
-        <div key={filter.key} className="border-b border-border pb-4">
-          <button
-            onClick={() => toggleSection(filter.key)}
-            className="w-full flex items-center justify-between py-2 text-sm font-semibold text-foreground"
-          >
-            {filter.label}
-            <ChevronDown
-              className={`h-4 w-4 transition-transform ${
-                openSections.includes(filter.key) ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-          <AnimatePresence>
-            {openSections.includes(filter.key) && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="space-y-1.5 pt-2">
-                  {filter.options.map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => updateFilter(filter.key, option)}
-                      className={`block w-full text-left px-3 py-1.5 text-sm rounded-md transition-colors ${
-                        activeFilters[filter.key] === option
-                          ? "bg-brand-red text-white"
-                          : "hover:bg-brand-cream text-foreground"
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      ))}
+  const sidebarBody = (
+    <div className="space-y-1">
+      {filterConfig.map((filter) => {
+        const open = openSections.includes(filter.key);
+        return (
+          <div key={filter.key} className="border-b border-border last:border-b-0">
+            <button
+              onClick={() => toggleSection(filter.key)}
+              className="w-full flex items-center justify-between py-4 text-xs font-semibold uppercase tracking-[0.15em] text-foreground"
+            >
+              {filter.label}
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-transform ${
+                  open ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            <AnimatePresence initial={false}>
+              {open && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-1 pb-4 pl-3">
+                    {filter.options.map((option) => {
+                      const isActive = activeFilters[filter.key] === option;
+                      return (
+                        <button
+                          key={option}
+                          onClick={() => updateFilter(filter.key, option)}
+                          className={`block w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${
+                            isActive
+                              ? "text-brand-red font-semibold"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
     </div>
   );
 
   return (
     <>
-      {/* Top bar */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setMobileFilterOpen(true)}
-            className="lg:hidden flex items-center gap-2 px-3 py-2 border border-border rounded-lg text-sm"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filters
-          </button>
-          <p className="text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{totalProducts}</span> products
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      {/* Mobile filter button + active chips bar */}
+      <div className="lg:hidden mb-4 flex items-center justify-between flex-wrap gap-2">
+        <button
+          onClick={() => setMobileFilterOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm bg-white"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters
           {Object.keys(activeFilters).length > 0 && (
-            <button
-              onClick={clearAllFilters}
-              className="text-xs text-brand-red hover:underline"
-            >
-              Clear all
-            </button>
+            <span className="ml-1 bg-brand-red text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+              {Object.keys(activeFilters).length}
+            </span>
           )}
-          <select
-            value={currentSort}
-            onChange={(e) => updateFilter("sort", e.target.value)}
-            className="px-3 py-2 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-red"
+        </button>
+        {Object.keys(activeFilters).length > 0 && (
+          <button
+            onClick={clearAllFilters}
+            className="text-xs text-brand-red hover:underline"
           >
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+            Clear all
+          </button>
+        )}
       </div>
 
-      {/* Active filter chips */}
       {Object.keys(activeFilters).length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="lg:hidden flex flex-wrap gap-2 mb-4">
           {Object.entries(activeFilters).map(([key, value]) => (
             <button
               key={key}
@@ -183,12 +177,22 @@ export default function ProductFilter({ totalProducts }: ProductFilterProps) {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:block w-64 shrink-0 pr-8">
-        <h3 className="font-heading text-lg font-semibold mb-4">Filters</h3>
-        {filterContent}
+      <aside className="hidden lg:block w-64 shrink-0 pr-6">
+        <div className="flex items-center justify-between mb-2 pb-3 border-b border-border">
+          <h3 className="font-heading text-2xl font-semibold">Filters</h3>
+          {Object.keys(activeFilters).length > 0 && (
+            <button
+              onClick={clearAllFilters}
+              className="text-xs text-brand-red hover:underline"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+        {sidebarBody}
       </aside>
 
-      {/* Mobile filter drawer */}
+      {/* Mobile drawer */}
       <AnimatePresence>
         {mobileFilterOpen && (
           <>
@@ -206,13 +210,13 @@ export default function ProductFilter({ totalProducts }: ProductFilterProps) {
               transition={{ type: "tween" }}
               className="fixed top-0 left-0 bottom-0 w-80 bg-white z-50 lg:hidden overflow-y-auto p-5"
             >
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                 <h3 className="font-heading text-lg font-semibold">Filters</h3>
                 <button onClick={() => setMobileFilterOpen(false)}>
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              {filterContent}
+              {sidebarBody}
             </motion.div>
           </>
         )}
