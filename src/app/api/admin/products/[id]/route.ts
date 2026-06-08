@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -66,6 +67,11 @@ export async function PATCH(
       return updated;
     });
 
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath(`/products/${product.slug}`);
+    revalidatePath("/admin/products");
+
     return NextResponse.json({ product });
   } catch (error) {
     console.error("Admin product PATCH error:", error);
@@ -83,6 +89,9 @@ export async function DELETE(
   const { id } = await ctx.params;
   try {
     await db.product.delete({ where: { id } });
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/admin/products");
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Admin product DELETE error:", error);

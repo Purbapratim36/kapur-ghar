@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import slugify from "slugify";
 import { auth } from "@/lib/auth";
@@ -89,6 +90,10 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/admin/products");
 
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
