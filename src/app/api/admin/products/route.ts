@@ -64,6 +64,18 @@ export async function POST(req: NextRequest) {
     const slug = await uniqueSlug(d.name);
     const images = d.images || [];
 
+    // Verify the category exists (avoid silent foreign-key fails)
+    const cat = await db.category.findUnique({
+      where: { id: d.categoryId },
+      select: { slug: true },
+    });
+    if (!cat) {
+      return NextResponse.json(
+        { error: "Selected category does not exist. Refresh and try again." },
+        { status: 400 }
+      );
+    }
+
     const product = await db.product.create({
       data: {
         name: d.name,
@@ -93,6 +105,7 @@ export async function POST(req: NextRequest) {
 
     revalidatePath("/");
     revalidatePath("/products");
+    revalidatePath(`/categories/${cat.slug}`);
     revalidatePath("/admin/products");
 
     return NextResponse.json({ product }, { status: 201 });

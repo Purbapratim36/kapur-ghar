@@ -55,7 +55,11 @@ export async function PATCH(
     const { images, ...rest } = parsed.data;
 
     const product = await db.$transaction(async (tx) => {
-      const updated = await tx.product.update({ where: { id }, data: rest });
+      const updated = await tx.product.update({
+        where: { id },
+        data: rest,
+        include: { category: { select: { slug: true } } },
+      });
       if (images) {
         await tx.productImage.deleteMany({ where: { productId: id } });
         if (images.length) {
@@ -70,6 +74,7 @@ export async function PATCH(
     revalidatePath("/");
     revalidatePath("/products");
     revalidatePath(`/products/${product.slug}`);
+    revalidatePath(`/categories/${product.category.slug}`);
     revalidatePath("/admin/products");
 
     return NextResponse.json({ product });
@@ -88,9 +93,19 @@ export async function DELETE(
 
   const { id } = await ctx.params;
   try {
+    const existing = await db.product.findUnique({
+      where: { id },
+      include: { category: { select: { slug: true } } },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
     await db.product.delete({ where: { id } });
+
     revalidatePath("/");
     revalidatePath("/products");
+    revalidatePath(`/categories/${existing.category.slug}`);
     revalidatePath("/admin/products");
     return NextResponse.json({ success: true });
   } catch (error) {
