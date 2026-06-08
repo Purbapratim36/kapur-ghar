@@ -56,7 +56,7 @@ export default async function EditProductPage({
           isActive: product.isActive,
           isFeatured: product.isFeatured,
           isNew: product.isNew,
-          images: product.images.length ? product.images.map((i) => i.url) : [""],
+          images: product.images.map((i) => i.url),
         }}
       />
     </div>

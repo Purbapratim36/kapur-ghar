@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Plus, Trash2 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 interface Category {
   id: string;
@@ -52,7 +52,7 @@ const empty: ProductInput = {
   isActive: true,
   isFeatured: false,
   isNew: true,
-  images: [""],
+  images: [],
 };
 
 export default function ProductForm({
@@ -70,17 +70,6 @@ export default function ProductForm({
 
   const update = <K extends keyof ProductInput>(key: K, value: ProductInput[K]) =>
     setData((p) => ({ ...p, [key]: value }));
-
-  const updateImage = (idx: number, value: string) =>
-    setData((p) => {
-      const next = [...p.images];
-      next[idx] = value;
-      return { ...p, images: next };
-    });
-
-  const addImageField = () => setData((p) => ({ ...p, images: [...p.images, ""] }));
-  const removeImage = (idx: number) =>
-    setData((p) => ({ ...p, images: p.images.filter((_, i) => i !== idx) }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -322,38 +311,15 @@ export default function ProductForm({
         <div>
           <h2 className="font-heading text-lg font-bold">Images</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Paste image URLs (use Cloudinary, Unsplash, or any public URL). The first image is the cover.
+            Upload images directly from your computer. They&apos;ll be stored on the CDN
+            and automatically optimised for fast delivery.
           </p>
         </div>
-        <div className="space-y-2">
-          {data.images.map((url, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                value={url}
-                onChange={(e) => updateImage(i, e.target.value)}
-                placeholder="https://res.cloudinary.com/…/product.jpg"
-                className={input}
-              />
-              <button
-                type="button"
-                onClick={() => removeImage(i)}
-                disabled={data.images.length === 1}
-                className="p-2.5 hover:bg-red-50 rounded-lg disabled:opacity-50"
-                title="Remove"
-              >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={addImageField}
-          className="flex items-center gap-1.5 text-sm text-brand-red hover:underline font-medium"
-        >
-          <Plus className="h-4 w-4" />
-          Add another image
-        </button>
+        <ImageUpload
+          images={data.images}
+          onChange={(next) => update("images", next)}
+          max={8}
+        />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
