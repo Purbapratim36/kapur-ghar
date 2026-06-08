@@ -7,6 +7,7 @@ import PromoBanner from "@/components/home/PromoBanner";
 import Testimonials from "@/components/home/Testimonials";
 import Newsletter from "@/components/home/Newsletter";
 import { getProducts } from "@/lib/products";
+import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Kapur Ghar | Traditional Assamese Mekhela Sador & Ethnic Fashion",
@@ -19,10 +20,16 @@ export const dynamic = "force-dynamic";
 
 // Server component — fetches real DB data
 export default async function HomePage() {
-  const [newArrivals, bestSellers, festivalCollection] = await Promise.all([
+  const [newArrivals, bestSellers, festivalCollection, heroSlides] = await Promise.all([
     getProducts({ limit: 8, isNew: true }),
     getProducts({ limit: 8, featured: true }),
     getProducts({ limit: 8 }),
+    db.heroSlide
+      .findMany({
+        where: { isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      })
+      .catch(() => []),
   ]);
 
   const noProducts =
@@ -32,7 +39,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroCarousel />
+      <HeroCarousel slides={heroSlides.length > 0 ? heroSlides : undefined} />
 
       <CategoryGrid />
 

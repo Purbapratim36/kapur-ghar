@@ -319,3 +319,26 @@ model Newsletter {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+// Hero carousel slides on the home page — admin-managed media (images + videos)
+model HeroSlide {
+  id           String   @id @default(cuid())
+  type         String   @default("image") // "image" | "video"
+  mediaUrl     String   // Cloudinary URL of the photo or video
+  publicId     String?  // Cloudinary public id (for deletion)
+  posterUrl    String?  // optional poster/thumbnail for video slides
+  title        String?
+  subtitle     String?
+  description  String?
+  ctaText      String?
+  ctaLink      String?
+  textColor    String   @default("white") // "white" | "dark"
+  alignment    String   @default("left") // "left" | "center" | "right"
+  overlayLevel String   @default("medium") // "none" | "light" | "medium" | "strong"
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}

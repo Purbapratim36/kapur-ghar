@@ -17,12 +17,14 @@ import {
   X,
   LogOut,
   FolderTree,
+  Film,
 } from "lucide-react";
 
 const sidebarLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/slides", label: "Hero Slides", icon: Film },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/coupons", label: "Coupons", icon: Tag },
