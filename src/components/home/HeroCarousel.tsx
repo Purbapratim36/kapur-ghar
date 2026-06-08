@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -15,8 +14,7 @@ const slides = [
       "Discover the beauty of authentic Assamese silk, woven by master artisans",
     cta: "Explore Collection",
     href: "/categories/mekhela-sador",
-    image: "/images/hero/hero-1.jpg",
-    color: "from-brand-maroon/80",
+    gradient: "from-brand-maroon via-brand-deep-red to-brand-maroon",
   },
   {
     id: 2,
@@ -26,8 +24,7 @@ const slides = [
       "Make your special day unforgettable with our exquisite bridal Mekhela Sador",
     cta: "Shop Bridal",
     href: "/categories/bridal-collection",
-    image: "/images/hero/hero-2.jpg",
-    color: "from-brand-deep-red/80",
+    gradient: "from-brand-deep-red via-brand-red to-brand-maroon",
   },
   {
     id: 3,
@@ -37,8 +34,7 @@ const slides = [
       "The pride of Assam — natural golden Muga silk, exclusive to our region",
     cta: "View Muga Silk",
     href: "/categories/muga-silk",
-    image: "/images/hero/hero-3.jpg",
-    color: "from-brand-maroon/80",
+    gradient: "from-brand-maroon via-amber-900 to-brand-deep-red",
   },
 ];
 
@@ -72,22 +68,8 @@ export default function HeroCarousel() {
           transition={{ duration: 0.8 }}
           className="absolute inset-0"
         >
-          {/* Placeholder gradient when no image */}
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-maroon via-brand-deep-red to-brand-maroon" />
-          <Image
-            src={slide.image}
-            alt={slide.title}
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="100vw"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-          <div
-            className={`absolute inset-0 bg-gradient-to-r ${slide.color} to-transparent`}
-          />
+          <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`} />
+          <div className="absolute inset-0 bg-assamese-pattern opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         </motion.div>
       </AnimatePresence>

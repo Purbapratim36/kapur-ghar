@@ -4,6 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+function isValidImageUrl(url: string | undefined): url is string {
+  if (!url) return false;
+  // Reject local placeholder paths that aren't actually shipped in /public
+  if (url.startsWith("/images/")) return false;
+  return url.startsWith("http://") || url.startsWith("https://");
+}
+
 interface PromoBannerProps {
   title: string;
   subtitle: string;
@@ -33,18 +40,16 @@ export default function PromoBanner({
             href={href}
             className="block relative overflow-hidden rounded-2xl bg-brand-maroon min-h-[200px] lg:min-h-[280px] group"
           >
-            {/* Background */}
-            {image && (
+            {/* Background — only render Image for real URLs, gradient otherwise */}
+            {isValidImageUrl(image) && (
               <Image
                 src={image}
                 alt={title}
                 fill
                 className="object-cover opacity-30 group-hover:scale-105 transition-transform duration-700"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
               />
             )}
+            <div className="absolute inset-0 bg-assamese-pattern opacity-20" />
             <div className="absolute inset-0 bg-gradient-to-r from-brand-maroon via-brand-maroon/90 to-transparent" />
 
             {/* Ornate corners */}
