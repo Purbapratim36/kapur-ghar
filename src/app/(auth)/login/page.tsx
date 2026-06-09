@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import toast from "react-hot-toast";
+import { signInWithGoogle } from "@/lib/google-signin";
 
 export default function LoginPage() {
   return (
@@ -56,16 +57,25 @@ function LoginInner() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl });
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    const ok = await signInWithGoogle(callbackUrl);
+    if (ok) {
+      toast.success("Welcome!");
+      router.push(callbackUrl);
+      router.refresh();
+    } else {
+      setGoogleLoading(false);
+    }
   };
 
-  // Show OAuth error toast on mount via simple param check
+  // Show error toast on mount via simple param check
   if (errorParam && typeof window !== "undefined") {
     const errorMap: Record<string, string> = {
-      OAuthAccountNotLinked: "This email is registered with another sign-in method. Try signing in with your password.",
-      OAuthSignin: "Could not start Google sign-in.",
-      Callback: "Sign-in failed. Please try again.",
+      CredentialsSignin: "Sign-in failed. Please try again.",
+      Configuration: "Sign-in service error. Please try again.",
     };
     setTimeout(() => toast.error(errorMap[errorParam] || "Sign-in error"), 100);
   }
@@ -112,7 +122,8 @@ function LoginInner() {
           {/* Google Login */}
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 py-3 border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors mb-6"
+            disabled={googleLoading}
+            className="w-full flex items-center justify-center gap-3 py-3 border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors mb-6 disabled:opacity-60"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path
@@ -132,7 +143,7 @@ function LoginInner() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            {googleLoading ? "Signing in…" : "Continue with Google"}
           </button>
 
           <div className="relative mb-6">
