@@ -100,6 +100,7 @@ export default function CheckoutPage() {
     }
     setPlacing(true);
     try {
+      // 1. Create the DB order (and a linked Razorpay order if non-COD)
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,9 +120,57 @@ export default function CheckoutPage() {
         return;
       }
 
-      toast.success("Order placed successfully!");
-      clearCart();
-      router.push(`/account/orders/${data.orderId}`);
+      // 2a. COD — done. Show success and redirect.
+      if (selectedPayment === "COD") {
+        toast.success("Order placed! Pay on delivery.");
+        clearCart();
+        router.push(`/account/orders/${data.orderId}`);
+        return;
+      }
+
+      // 2b. Online — launch Razorpay popup
+      if (!data.razorpayOrderId || !data.razorpayKeyId) {
+        toast.error("Online payment is not configured yet. Try COD for now.");
+        return;
+      }
+
+      const { launchRazorpayCheckout } = await import("@/lib/razorpay-checkout");
+      const launched = await launchRazorpayCheckout({
+        keyId: data.razorpayKeyId,
+        razorpayOrderId: data.razorpayOrderId,
+        amountPaise: Math.round(data.total * 100),
+        orderNumber: data.orderNumber,
+        customerName: session?.user?.name || undefined,
+        customerEmail: session?.user?.email || undefined,
+        onSuccess: async (resp) => {
+          // 3. Verify the payment signature server-side
+          const verifyRes = await fetch("/api/payment/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId: data.orderId,
+              razorpayOrderId: resp.razorpay_order_id,
+              razorpayPaymentId: resp.razorpay_payment_id,
+              razorpaySignature: resp.razorpay_signature,
+            }),
+          });
+          if (!verifyRes.ok) {
+            const v = await verifyRes.json();
+            toast.error(v.error || "Payment verification failed");
+            return;
+          }
+          toast.success("Payment successful! Order confirmed.");
+          clearCart();
+          router.push(`/account/orders/${data.orderId}`);
+        },
+        onDismiss: () => {
+          toast("Payment cancelled. Your order is on hold — you can complete it from My Orders.");
+          router.push(`/account/orders/${data.orderId}`);
+        },
+      });
+      if (!launched) {
+        toast.error("Could not open payment popup. Please check your network.");
+      }
     } catch (err) {
       console.error(err);
       toast.error("Could not place order");

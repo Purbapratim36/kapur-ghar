@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getRazorpay } from "@/lib/razorpay";
+import { sendMail, orderConfirmationEmail } from "@/lib/mail";
 
 const itemSchema = z.object({
   productId: z.string(),
@@ -173,8 +175,50 @@ export async function POST(req: NextRequest) {
       return created;
     });
 
+    // Fire-and-forget COD confirmation email (online payment emails go on verify)
+    if (paymentMethod === "COD" && session.user.email) {
+      sendMail({
+        to: session.user.email,
+        subject: `Order Confirmed - ${orderNumber}`,
+        html: orderConfirmationEmail(
+          orderNumber,
+          `₹${total.toLocaleString("en-IN")}`
+        ),
+      }).catch(() => {});
+    }
+
+    // For online payment methods, also create a Razorpay order and link it
+    let razorpayOrderId: string | undefined;
+    if (paymentMethod !== "COD") {
+      try {
+        const rpOrder = await getRazorpay().orders.create({
+          amount: Math.round(total * 100), // paise
+          currency: "INR",
+          receipt: orderNumber,
+          notes: {
+            internalOrderId: order.id,
+            userId: session.user.id,
+          },
+        });
+        razorpayOrderId = rpOrder.id;
+        await db.order.update({
+          where: { id: order.id },
+          data: { razorpayOrderId },
+        });
+      } catch (err) {
+        console.error("Razorpay order create failed:", err);
+        // Don't fail the whole flow — let the client retry payment
+      }
+    }
+
     return NextResponse.json(
-      { orderId: order.id, orderNumber: order.orderNumber, total },
+      {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        total,
+        razorpayOrderId,
+        razorpayKeyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      },
       { status: 201 }
     );
   } catch (error) {

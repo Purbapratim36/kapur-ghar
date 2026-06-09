@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { sendMail, welcomeEmail } from "@/lib/mail";
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(60),
@@ -66,6 +67,13 @@ export async function POST(req: NextRequest) {
       },
       select: { id: true, name: true, email: true },
     });
+
+    // Fire welcome email (best-effort, never blocks the response)
+    sendMail({
+      to: user.email,
+      subject: "Welcome to Kapur Ghar 🪷",
+      html: welcomeEmail(user.name),
+    }).catch(() => {});
 
     return NextResponse.json(
       { message: "Account created successfully", user },
