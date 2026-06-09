@@ -47,3 +47,8 @@ prisma/migrations/dev.db*
 
 # Claude Code local config
 .claude/
+
+# Firebase service account keys — NEVER commit
+*firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
