@@ -6,6 +6,7 @@ import ProductCarousel from "@/components/home/ProductCarousel";
 import PromoBanner from "@/components/home/PromoBanner";
 import Testimonials from "@/components/home/Testimonials";
 import Newsletter from "@/components/home/Newsletter";
+import TrustStrip from "@/components/shared/TrustStrip";
 import { getProducts } from "@/lib/products";
 import { db } from "@/lib/db";
 
@@ -151,6 +152,8 @@ export default async function HomePage() {
       )}
 
       <Testimonials />
+
+      <TrustStrip />
 
       <Newsletter />
     </>

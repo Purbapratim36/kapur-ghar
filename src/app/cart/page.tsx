@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Minus, Plus, X, ShoppingBag, ArrowRight, Tag, Trash2 } from "lucide-react";
+import { Minus, Plus, X, ArrowRight, Tag, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import EmptyState from "@/components/shared/EmptyState";
 import { useCartStore } from "@/store/cart";
 import toast from "react-hot-toast";
 
@@ -63,22 +64,13 @@ export default function CartPage() {
           </div>
 
           {items.length === 0 ? (
-            <div className="text-center py-20">
-              <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="font-heading text-2xl font-bold text-foreground mb-2">
-                Your cart is empty
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                Looks like you haven&apos;t added anything to your cart yet.
-              </p>
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 bg-brand-red text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-brand-deep-red transition-colors"
-              >
-                Continue Shopping
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+            <EmptyState
+              kind="cart"
+              title="Your cart is empty"
+              description="Looks like you haven't added anything to your cart yet. Let's fix that."
+              ctaLabel="Continue shopping"
+              ctaHref="/products"
+            />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Cart Items */}

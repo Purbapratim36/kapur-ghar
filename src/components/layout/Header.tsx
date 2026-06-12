@@ -206,24 +206,49 @@ export default function Header() {
                 aria-label="Wishlist"
               >
                 <Heart className="h-5 w-5" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-brand-red text-white text-[10px] font-bold rounded-full h-4.5 w-4.5 flex items-center justify-center min-w-[18px] px-1">
-                    {wishlistCount}
-                  </span>
-                )}
+                <AnimatePresence>
+                  {wishlistCount > 0 && (
+                    <motion.span
+                      key={wishlistCount}
+                      initial={{ scale: 0.4, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.4, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                      className="absolute -top-0.5 -right-0.5 bg-brand-red text-white text-[10px] font-bold rounded-full h-4.5 w-4.5 flex items-center justify-center min-w-[18px] px-1"
+                    >
+                      {wishlistCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Link>
 
               <Link
                 href="/cart"
-                className="relative p-2.5 hover:bg-brand-cream rounded-full transition-colors"
+                className="relative p-2.5 hover:bg-brand-cream rounded-full transition-colors group"
                 aria-label="Cart"
               >
-                <ShoppingBag className="h-5 w-5" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-brand-red text-white text-[10px] font-bold rounded-full h-4.5 w-4.5 flex items-center justify-center min-w-[18px] px-1">
-                    {itemCount}
-                  </span>
-                )}
+                <motion.div
+                  key={itemCount}
+                  initial={{ rotate: 0 }}
+                  animate={itemCount > 0 ? { rotate: [0, -12, 12, -6, 0] } : { rotate: 0 }}
+                  transition={{ duration: 0.55, ease: "easeOut" }}
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                </motion.div>
+                <AnimatePresence>
+                  {itemCount > 0 && (
+                    <motion.span
+                      key={itemCount}
+                      initial={{ scale: 0.4, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.4, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                      className="absolute -top-0.5 -right-0.5 bg-brand-red text-white text-[10px] font-bold rounded-full h-4.5 w-4.5 flex items-center justify-center min-w-[18px] px-1"
+                    >
+                      {itemCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Link>
 
               <div className="relative" ref={userMenuRef}>

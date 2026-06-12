@@ -42,10 +42,66 @@ interface Address {
   isDefault?: boolean;
 }
 
-const paymentMethods = [
-  { id: "RAZORPAY", label: "Pay Online", desc: "UPI, Cards, Net Banking, Wallets", icon: "💳" },
-  { id: "UPI", label: "UPI", desc: "Google Pay, PhonePe, Paytm, BHIM", icon: "📱" },
-  { id: "COD", label: "Cash on Delivery", desc: "Pay when you receive", icon: "💵" },
+import {
+  VisaLogo,
+  MastercardLogo,
+  RupayLogo,
+  AmexLogo,
+  UpiLogo,
+  PhonePeLogo,
+  GooglePayLogo,
+  PaytmLogo,
+  BhimLogo,
+  NetBankingLogo,
+  WalletLogo,
+  CodTruckLogo,
+} from "@/components/icons/PaymentBrands";
+
+const paymentMethods: {
+  id: string;
+  label: string;
+  desc: string;
+  brands: React.ReactNode;
+}[] = [
+  {
+    id: "RAZORPAY",
+    label: "Pay Online — Cards / Net Banking / Wallets",
+    desc: "Visa, Mastercard, RuPay, Amex + all major banks. Secure checkout via Razorpay.",
+    brands: (
+      <>
+        <VisaLogo />
+        <MastercardLogo />
+        <RupayLogo />
+        <AmexLogo />
+        <NetBankingLogo />
+        <WalletLogo />
+      </>
+    ),
+  },
+  {
+    id: "UPI",
+    label: "UPI",
+    desc: "Pay instantly from any UPI app.",
+    brands: (
+      <>
+        <UpiLogo />
+        <PhonePeLogo />
+        <GooglePayLogo />
+        <PaytmLogo />
+        <BhimLogo />
+      </>
+    ),
+  },
+  {
+    id: "COD",
+    label: "Cash on Delivery",
+    desc: "Pay in cash when your order arrives.",
+    brands: (
+      <span className="flex items-center gap-2 text-xs text-muted-foreground">
+        <CodTruckLogo /> Free to choose, ₹49 handling on COD orders under ₹2,999
+      </span>
+    ),
+  },
 ];
 
 export default function CheckoutPage() {
@@ -367,30 +423,39 @@ export default function CheckoutPage() {
                 >
                   <h2 className="font-heading text-xl font-bold mb-4">Payment Method</h2>
                   <div className="space-y-3">
-                    {paymentMethods.map((method) => (
-                      <label
-                        key={method.id}
-                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
-                          selectedPayment === method.id
-                            ? "border-brand-red bg-brand-red/5"
-                            : "border-border hover:border-brand-gold/50"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="payment"
-                          value={method.id}
-                          checked={selectedPayment === method.id}
-                          onChange={() => setSelectedPayment(method.id)}
-                          className="accent-brand-red"
-                        />
-                        <span className="text-2xl">{method.icon}</span>
-                        <div>
-                          <p className="font-semibold text-sm">{method.label}</p>
-                          <p className="text-xs text-muted-foreground">{method.desc}</p>
-                        </div>
-                      </label>
-                    ))}
+                    {paymentMethods.map((method) => {
+                      const selected = selectedPayment === method.id;
+                      return (
+                        <label
+                          key={method.id}
+                          className={`block p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                            selected
+                              ? "border-brand-red bg-brand-red/5 shadow-sm"
+                              : "border-border hover:border-brand-gold/50"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="radio"
+                              name="payment"
+                              value={method.id}
+                              checked={selected}
+                              onChange={() => setSelectedPayment(method.id)}
+                              className="mt-1 accent-brand-red shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm">{method.label}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {method.desc}
+                              </p>
+                              <div className="flex items-center gap-2 flex-wrap mt-3">
+                                {method.brands}
+                              </div>
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
 
                   <div className="flex gap-3 mt-6">
