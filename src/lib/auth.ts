@@ -2,7 +2,11 @@ import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { getAdminAuth, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
+// NOTE: firebase-admin is imported lazily inside the 'firebase' provider's
+// authorize() — never at module top — so Vercel's bundler never has to resolve
+// it for non-firebase sign-ins. Combined with `serverExternalPackages` in
+// next.config.ts, this prevents the "Failed to load external module
+// firebase-admin" crash on routes like /api/auth/providers.
 
 const providers: NextAuthConfig["providers"] = [
   // Email + password
@@ -53,6 +57,12 @@ const providers: NextAuthConfig["providers"] = [
       try {
         const idToken = credentials?.idToken as string | undefined;
         if (!idToken) return null;
+
+        // Lazy-import firebase-admin so it only loads when actually verifying
+        const { getAdminAuth, isFirebaseAdminConfigured } = await import(
+          "@/lib/firebase-admin"
+        );
+
         if (!isFirebaseAdminConfigured()) {
           console.error("[AUTH ERROR] firebase provider used but Admin not configured");
           return null;

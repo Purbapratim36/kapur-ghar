@@ -9,6 +9,18 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  // Packages that should NOT be bundled by Next.js — they have dynamic requires
+  // or native Node.js deps that break Vercel's bundler. Left as runtime requires.
+  serverExternalPackages: [
+    "firebase-admin",
+    "@google-cloud/firestore",
+    "@grpc/grpc-js",
+    "google-gax",
+    "google-auth-library",
+    "farmhash-modern",
+    "nodemailer",
+    "razorpay",
+  ],
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
